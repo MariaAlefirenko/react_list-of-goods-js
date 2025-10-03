@@ -17,41 +17,40 @@ export const goodsFromServer = [
 ];
 
 export const App = () => {
+  const [initialGoods] = useState(
+    () => goodsFromServer.map((name, idx) => ({ id: idx + 1, name })),
+    // eslint-disable-next-line function-paren-newline
+  );
+
+  const [goods, setGoods] = useState(() => initialGoods.map(g => ({ ...g })));
+
   const [sortField, setSortField] = useState('');
   const [reversed, setReversed] = useState(false);
 
   const handleSortAlphabetically = () => {
     setSortField('alphabetical');
+    setReversed(false);
+    setGoods(prev => [...prev].sort((a, b) => a.name.localeCompare(b.name)));
   };
 
   const handleSortByLength = () => {
     setSortField('length');
+    setReversed(false);
+    setGoods(prev => [...prev].sort((a, b) => a.name.length - b.name.length));
   };
 
   const handleReverse = () => {
+    setGoods(prev => [...prev].reverse());
     setReversed(prev => !prev);
   };
 
   const handleReset = () => {
     setSortField('');
     setReversed(false);
+    setGoods(initialGoods.map(g => ({ ...g })));
   };
 
-  const visibleGoods = [...goodsFromServer];
-
-  if (sortField === 'alphabetical') {
-    visibleGoods.sort((a, b) => a.localeCompare(b));
-  }
-
-  if (sortField === 'length') {
-    visibleGoods.sort((a, b) => a.length - b.length);
-  }
-
-  if (reversed) {
-    visibleGoods.reverse();
-  }
-
-  const isChanged = sortField || reversed;
+  const isChanged = !goods.every((item, i) => item.id === initialGoods[i].id);
 
   return (
     <div className="section content">
@@ -78,9 +77,7 @@ export const App = () => {
 
         <button
           type="button"
-          className={cn('button is-warning', {
-            'is-light': !reversed,
-          })}
+          className={cn('button is-warning', { 'is-light': !reversed })}
           onClick={handleReverse}
         >
           Reverse
@@ -98,9 +95,9 @@ export const App = () => {
       </div>
 
       <ul>
-        {visibleGoods.map(good => (
-          <li key={good} data-cy="Good">
-            {good}
+        {goods.map(g => (
+          <li key={g.id} data-cy="Good">
+            {g.name}
           </li>
         ))}
       </ul>
